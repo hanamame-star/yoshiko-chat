@@ -96,6 +96,42 @@
 
   .voice-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 700; }
 
+  #mode-toggle-btn {
+    margin-left: auto;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 2px solid var(--accent-light);
+    background: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  #mode-toggle-btn.voice-only {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .voice-only-bubble {
+    padding: 12px 18px;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 8px var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--primary);
+    font-weight: 700;
+  }
+  .voice-only-bubble:active { opacity: 0.7; }
+
   #chat-area {
     flex: 1;
     overflow-y: auto;
@@ -267,6 +303,7 @@
   <label>声を選んでね：</label>
   <button class="voice-btn active" onclick="setVoice('female')" id="btn-female">👩🔔 女性</button>
   <button class="voice-btn" onclick="setVoice('male')" id="btn-male">👨🔔 男性</button>
+  <button id="mode-toggle-btn" onclick="toggleVoiceOnly()">📝 文字あり</button>
 </div>
 
 <div id="chat-area"></div>
@@ -343,6 +380,7 @@ const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 let messages    = [];
 let usedSeconds = parseInt(localStorage.getItem(TIME_KEY) || "0");
 let voiceType   = "female";
+let voiceOnly   = false;   // 声だけモード
 let isRecording = false;
 let recognition = null;
 let isLoading   = false;
@@ -630,11 +668,25 @@ function speak(text) {
   if (!cleanText) return;
   const utter   = new SpeechSynthesisUtterance(cleanText);
   utter.lang    = "ja-JP";
-  utter.rate    = 0.82;
-  utter.pitch   = voiceType === "female" ? 1.1 : 0.85;
+  // iOSはゆっくり目・ピッチ自然に。PCは少し速め
+  utter.rate    = isIOS ? 0.78 : 0.85;
+  utter.pitch   = isIOS ? 1.0 : (voiceType === "female" ? 1.05 : 0.9);
+  utter.volume  = 1.0;
   if (!selectedVoice) selectedVoice = findVoice(voiceType);
   if (selectedVoice)  utter.voice   = selectedVoice;
   window.speechSynthesis.speak(utter);
+}
+
+function toggleVoiceOnly() {
+  voiceOnly = !voiceOnly;
+  const btn = document.getElementById("mode-toggle-btn");
+  if (voiceOnly) {
+    btn.textContent = "🔊 声だけ";
+    btn.classList.add("voice-only");
+  } else {
+    btn.textContent = "📝 文字あり";
+    btn.classList.remove("voice-only");
+  }
 }
 
 // =====================
@@ -644,7 +696,20 @@ function addMessage(role, text) {
   const area = document.getElementById("chat-area");
   const div  = document.createElement("div");
   div.className = `msg ${role}`;
-  if (role === "ai" && isIOS) {
+
+  if (role === "ai" && voiceOnly) {
+    // 声だけモード：AIはシンプルな再生ボタンのみ表示
+    div.innerHTML = `
+      <div class="msg-label">🔔 ベル</div>
+      <div class="voice-only-bubble" onclick="speak(this.dataset.text)" data-text="${text.replace(/"/g,'&quot;')}">
+        🔊 タップして聞く
+      </div>
+    `;
+  } else if (role === "user" && voiceOnly) {
+    // 声だけモード：ユーザー発話は表示しない
+    return;
+  } else if (role === "ai" && isIOS) {
+    // iOSでテキストあり：タップで再生
     div.innerHTML = `
       <div class="msg-label">🔔 ベル</div>
       <div class="msg-bubble" onclick="speak(this.dataset.text)" data-text="${text.replace(/"/g,'&quot;')}" style="cursor:pointer;">${text}</div>
