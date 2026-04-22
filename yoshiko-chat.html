@@ -395,9 +395,23 @@ function showLimitMessage() {
 }
 
 // =====================
+// iOS音声ロック解除
+// =====================
+let audioUnlocked = false;
+function unlockAudio() {
+  if (audioUnlocked) return;
+  const utter = new SpeechSynthesisUtterance('');
+  window.speechSynthesis.speak(utter);
+  audioUnlocked = true;
+}
+document.addEventListener('touchstart', unlockAudio, { once: true });
+document.addEventListener('click',      unlockAudio, { once: true });
+
+// =====================
 // 声
 // =====================
 function setVoice(type) {
+  unlockAudio();
   voiceType = type;
   document.getElementById("btn-female").classList.toggle("active", type === "female");
   document.getElementById("btn-male").classList.toggle("active", type === "male");
