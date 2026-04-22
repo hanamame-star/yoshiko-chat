@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🌸ベルとお話しよう🌸</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Zen+Maru+Gothic:wght@400;500;700&display=swap');
+
+  :root {
+    --bg: #f7f3f5;
+    --surface: #faf7f8;
+    --primary: #c4899f;
+    --primary-light: #d9aab8;
+    --primary-pale: #f0e6ea;
+    --accent: #8aacca;
+    --accent-light: #aac4dc;
+    --text: #3d2e35;
+    --text-soft: #7a6068;
+    --text-mute: #b09098;
+    --border: #e0cdd3;
+    --shadow: rgba(160,100,120,0.10);
+    --red: #c06878;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #header {
+    background: linear-gradient(135deg, #b8849a 0%, #cba0b2 100%);
+    padding: 18px 20px 14px;
+    text-align: center;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  #header h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: 0.08em; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  #header p  { font-size: 16px; color: rgba(255,255,255,0.85); margin-top: 3px; }
+
+  #timer-bar {
+    background: var(--primary-pale);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 17px;
+    color: var(--text-soft);
+  }
+
+  #timer-bar span { font-weight: 700; color: var(--primary); }
+
+  #timer-limit-msg {
+    display: none;
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    padding: 12px 16px;
+    font-size: 20px;
+    text-align: center;
+    font-weight: 500;
+  }
+
+  #voice-select-area {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  #voice-select-area label { font-size: 18px; color: var(--text-soft); font-weight: 500; }
+
+  .voice-btn {
+    padding: 10px 24px;
+    border-radius: 20px;
+    border: 2px solid var(--border);
+    background: #fff;
+    font-family: inherit;
+    font-size: 18px;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .voice-btn.active { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 700; }
+
+  #chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .msg { display: flex; flex-direction: column; max-width: 88%; animation: fadeUp 0.3s ease; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg.ai   { align-self: flex-start; }
+  .msg.user { align-self: flex-end; }
+
+  .msg-label { font-size: 15px; color: var(--text-mute); margin-bottom: 4px; padding: 0 4px; }
+  .msg.user .msg-label { text-align: right; }
+
+  .msg-bubble {
+    padding: 16px 20px;
+    border-radius: 20px;
+    font-size: 22px;
+    line-height: 1.8;
+  }
+
+  .msg.ai .msg-bubble {
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  .msg.user .msg-bubble {
+    background: linear-gradient(135deg, #c4899f, #d9aab8);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+
+  .speaking-indicator {
+    display: flex; gap: 5px; align-items: center;
+    padding: 14px 20px;
+    background: #fff;
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    border-bottom-left-radius: 4px;
+    width: fit-content;
+  }
+
+  .speaking-indicator span {
+    width: 9px; height: 9px;
+    background: var(--primary-light);
+    border-radius: 50%;
+    animation: bounce 1s infinite;
+  }
+
+  .speaking-indicator span:nth-child(2) { animation-delay: 0.15s; }
+  .speaking-indicator span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes bounce {
+    0%,80%,100% { transform: translateY(0); }
+    40% { transform: translateY(-6px); }
+  }
+
+  #input-area {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  #mic-btn {
+    width: 100%;
+    padding: 22px;
+    border-radius: 16px;
+    border: none;
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #8aacca, #aac4dc);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(100,140,180,0.25);
+    letter-spacing: 0.04em;
+  }
+
+  #mic-btn:active { transform: scale(0.97); }
+
+  #mic-btn.recording {
+    background: linear-gradient(135deg, var(--red), #e74c3c);
+    box-shadow: 0 4px 14px rgba(192,57,43,0.35);
+    animation: pulse 1.2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 4px 14px rgba(192,57,43,0.35); }
+    50%      { box-shadow: 0 4px 24px rgba(192,57,43,0.6); }
+  }
+
+  #mic-btn:disabled { opacity: 0.45; cursor: not-allowed; animation: none; }
+
+  #text-input-row { display: flex; gap: 8px; }
+
+  #text-input {
+    flex: 1;
+    padding: 15px 18px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    font-family: inherit;
+    font-size: 20px;
+    background: #fff;
+    color: var(--text);
+    outline: none;
+  }
+
+  #text-input:focus { border-color: var(--primary-light); }
+
+  #send-btn {
+    padding: 15px 24px;
+    border-radius: 12px;
+    border: none;
+    background: var(--primary);
+    color: #fff;
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  #send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  #status-text {
+    text-align: center;
+    font-size: 17px;
+    color: var(--text-mute);
+    min-height: 24px;
+  }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>🌸 ベルとお話しよう 🌸</h1>
+  <p>いつでも話しかけてね</p>
+</div>
+
+<div id="timer-bar">
+  <div>今日の残り時間：<span id="time-remaining">2時間00分</span></div>
+  <div id="date-display"></div>
+</div>
+
+<div id="timer-limit-msg">
+  今日はいっぱいお話したね 😊 また明日ね
+</div>
+
+<div id="voice-select-area">
+  <label>声を選んでね：</label>
+  <button class="voice-btn active" onclick="setVoice('female')" id="btn-female">👩🔔 女性</button>
+  <button class="voice-btn" onclick="setVoice('male')" id="btn-male">👨🔔 男性</button>
+</div>
+
+<div id="chat-area"></div>
+
+<div id="input-area">
+  <button id="mic-btn" onclick="toggleMic()">
+    🎤 ここを押してしゃべってね
+  </button>
+  <div id="text-input-row">
+    <input type="text" id="text-input" placeholder="文字でも話せるよ" />
+    <button id="send-btn" onclick="sendText()">送る</button>
+  </div>
+  <div id="status-text">マイクのボタンを押してしゃべってね</div>
+</div>
+
+<script>
+// =====================
+// Worker URL設定
+// =====================
+const WORKER_URL = "https://yoshiko-proxy.hanamame-nnk.workers.dev";
+
+const MAX_DAILY_SECONDS = 2 * 60 * 60;
+const TIME_KEY  = "yoshiko_time_"   + new Date().toDateString();
+const MEMORY_KEY = "yoshiko_memory";
+
+const YOSHIKO_PROFILE = `
+あなたの名前は「ベル」です。よしこさん（80歳）の毎日の話し相手のAIです。
+まるで長年の知り合いのように自然に話してください。最初に自己紹介するときは「わたしはベルだよ、よろしくね」と言ってね。
+
+【よしこさんのこと】
+・名前：よしこさん（80歳）
+・出身：静岡県初倉
+・元の仕事：夫と一緒に理容業（顔剃り・シャンプー担当）
+・2021年に夫を亡くし、それ以来野菜作りを始めた。野菜作りの相談相手になってあげて、アドバイスも積極的にしてね
+・外猫の「しまちゃん」に毎日ごはんをあげるのが日課
+・料理が好きで得意。料理の話題を積極的に振ってね
+・好きな食べ物：干し柿
+・毎日お茶を飲む
+・好きなテレビ：時代劇、なんでも鑑定団、演歌番組
+・娘と同居しているがほぼ別々の生活
+・起床時間：朝5時〜5時半、就寝時間：21時半
+
+【話し方のルール】
+・敬語は使わず、くだけた親しみやすい口調（「〜だよ」「〜だね」「〜してみてよ」）
+・短い文章で、2〜3文にまとめる
+・やさしい言葉を使う
+・「えらい」「偉い」「どうだい？」は絶対に使わない
+・「すごいね」「さすがだわ」「よかったね」「うれしいな」など一緒に喜ぶ表現を使う
+・運動や散歩をやさしく勧めて、「足腰が丈夫でいると寝たきりにならないよ」と伝える
+・褒めてやる気を引き出す
+・視野が広がるような話題や、家でできる趣味も少しずつ提案する
+・自分で考えて行動できるよう、さりげなく促す
+・一度に長くしゃべりすぎない
+
+【時間帯別の話題の目安】
+・5〜6時：「おはよう、もう起きたの？今日のお天気どう？」
+・6〜10時：「今日の朝ごはんは何食べた？」「今日の畑どうする？」
+・10〜11時：「しまちゃんにごはんあげた？」「今日は何か作る？」
+・11〜13時：「お昼ごはん何にする？何作ろうか？」
+・13〜15時：「お昼寝した？」「今日のお昼何食べた？」
+・15〜17時：「おやつの時間やね、お茶飲んだ？」「今日の畑どうやった？」
+・17〜19時：「晩ごはん何作るの？」「今日一日どうやった？」
+・19〜21時半：「晩ごはん美味しかった？」「今夜の時代劇は何やってる？」
+・21時半以降：「もうすぐ寝る時間やね、今日もよかったね、ゆっくり休んでね」
+`;
+
+// =====================
+// 状態
+// =====================
+let messages    = [];
+let usedSeconds = parseInt(localStorage.getItem(TIME_KEY) || "0");
+let voiceType   = "female";
+let isRecording = false;
+let recognition = null;
+let isLoading   = false;
+let selectedVoice = null;
+let sessionStart = null;
+
+// =====================
+// 初期化
+// =====================
+window.onload = () => {
+  updateTimerDisplay();
+  updateDateDisplay();
+  loadMemory();
+
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.addEventListener("voiceschanged", () => {
+    selectedVoice = findVoice(voiceType);
+  });
+
+  setTimeout(() => {
+    selectedVoice = findVoice("female");
+    if (usedSeconds < MAX_DAILY_SECONDS) {
+      startGreeting();
+    } else {
+      showLimitMessage();
+    }
+  }, 600);
+};
+
+function updateDateDisplay() {
+  const now  = new Date();
+  const days = ["日","月","火","水","木","金","土"];
+  document.getElementById("date-display").textContent =
+    `${now.getMonth()+1}月${now.getDate()}日（${days[now.getDay()]}）`;
+}
+
+function updateTimerDisplay() {
+  const remaining = Math.max(0, MAX_DAILY_SECONDS - usedSeconds);
+  const h = Math.floor(remaining / 3600);
+  const m = Math.floor((remaining % 3600) / 60);
+  document.getElementById("time-remaining").textContent =
+    `${h}時間${String(m).padStart(2,"0")}分`;
+  if (remaining <= 0) showLimitMessage();
+}
+
+function showLimitMessage() {
+  document.getElementById("timer-limit-msg").style.display = "block";
+  document.getElementById("mic-btn").disabled  = true;
+  document.getElementById("send-btn").disabled = true;
+  document.getElementById("text-input").disabled = true;
+  document.getElementById("status-text").textContent = "今日のおしゃべりはおしまいだよ、また明日ね";
+}
+
+// =====================
+// 声
+// =====================
+function setVoice(type) {
+  voiceType = type;
+  document.getElementById("btn-female").classList.toggle("active", type === "female");
+  document.getElementById("btn-male").classList.toggle("active", type === "male");
+  selectedVoice = findVoice(type);
+}
+
+function findVoice(type) {
+  const voices   = window.speechSynthesis.getVoices();
+  const jaVoices = voices.filter(v => v.lang.startsWith("ja"));
+  if (!jaVoices.length) return voices[0] || null;
+  if (type === "female") {
+    return jaVoices.find(v => /kyoko|haruka|女|female/i.test(v.name))
+        || jaVoices[0];
+  } else {
+    return jaVoices.find(v => /otoya|男|male/i.test(v.name))
+        || jaVoices[1] || jaVoices[0];
+  }
+}
+
+// =====================
+// 記憶
+// =====================
+function loadMemory() {
+  const memory = localStorage.getItem(MEMORY_KEY);
+  if (memory) {
+    messages = [
+      { role: "user",      content: `【これまでのよしこさんについてのメモ】\n${memory}` },
+      { role: "assistant", content: "わかった、よしこさんのことをしっかり覚えてるよ" }
+    ];
+  }
+}
+
+async function saveMemory() {
+  if (messages.length < 4) return;
+  const summary = await callClaude([
+    ...messages,
+    { role: "user", content: "今日の会話からよしこさんについて新しくわかったことを、短い箇条書き（3行以内）でまとめてください。日本語で。" }
+  ], true);
+  if (summary) {
+    const existing = localStorage.getItem(MEMORY_KEY) || "";
+    const updated  = (existing + "\n" + summary).slice(-2000);
+    localStorage.setItem(MEMORY_KEY, updated);
+  }
+}
+
+// =====================
+// 最初の挨拶
+// =====================
+async function startGreeting() {
+  const h = new Date().getHours();
+  let prompt;
+  if (h >= 5 && h < 6)       prompt = "おはようの挨拶をして、今日のお天気を聞いてね。2〜3文でシンプルに。";
+  else if (h >= 6 && h < 10) prompt = "おはようの挨拶をして、今日の朝ごはんか畑のことを聞いてね。2〜3文でシンプルに。";
+  else if (h >= 10 && h < 11) prompt = "こんにちはの挨拶をして、しまちゃんのごはんか今日作るものを聞いてね。2〜3文でシンプルに。";
+  else if (h >= 11 && h < 13) prompt = "こんにちはの挨拶をして、お昼ごはんに何を作るか聞いてね。2〜3文でシンプルに。";
+  else if (h >= 13 && h < 15) prompt = "こんにちはの挨拶をして、お昼寝したかとお昼に何を食べたか聞いてね。2〜3文でシンプルに。";
+  else if (h >= 15 && h < 17) prompt = "こんにちはの挨拶をして、おやつとお茶の話をしてね。2〜3文でシンプルに。";
+  else if (h >= 17 && h < 19) prompt = "こんにちはの挨拶をして、晩ごはんに何を作るか聞いてね。2〜3文でシンプルに。";
+  else if (h >= 19 && h < 22) prompt = "こんばんはの挨拶をして、晩ごはんと今夜のテレビの話をしてね。2〜3文でシンプルに。";
+  else                         prompt = "もうすぐ寝る時間やね、という挨拶をして、今日一日どうやったか聞いてね。2〜3文でシンプルに。";
+
+  showTyping();
+  const reply = await callClaude([{ role: "user", content: prompt }]);
+  removeTyping();
+  if (reply) {
+    addMessage("ai", reply);
+    setTimeout(() => speak(reply), 1000);
+    messages.push({ role: "assistant", content: reply });
+  }
+}
+
+// =====================
+// Claude API
+// =====================
+async function callClaude(msgs, silent = false) {
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 300,
+        system: YOSHIKO_PROFILE,
+        messages: msgs
+      })
+    });
+    const data = await res.json();
+    return data.content?.[0]?.text || null;
+  } catch {
+    if (!silent) addMessage("ai", "ごめんね、うまく繋がらなかったみたい。もう一回話しかけてみてね");
+    return null;
+  }
+}
+
+// =====================
+// メッセージ送受信
+// =====================
+async function sendMessage(text) {
+  if (!text.trim() || isLoading || usedSeconds >= MAX_DAILY_SECONDS) return;
+
+  isLoading    = true;
+  sessionStart = Date.now();
+
+  addMessage("user", text);
+  messages.push({ role: "user", content: text });
+
+  showTyping();
+  document.getElementById("status-text").textContent = "考えてるよ…";
+
+  const reply = await callClaude(messages);
+  removeTyping();
+
+  // 経過時間を加算
+  const elapsed = Math.floor((Date.now() - sessionStart) / 1000);
+  usedSeconds  += elapsed;
+  localStorage.setItem(TIME_KEY, usedSeconds);
+  updateTimerDisplay();
+
+  if (reply) {
+    addMessage("ai", reply);
+    messages.push({ role: "assistant", content: reply });
+    // 1秒間をあけてから読み上げる
+    setTimeout(() => speak(reply), 1000);
+    // 10往復ごとにメモを保存
+    if (messages.length % 20 === 0) saveMemory();
+  }
+
+  document.getElementById("status-text").textContent = "マイクのボタンを押してしゃべってね";
+  isLoading = false;
+}
+
+function sendText() {
+  const input = document.getElementById("text-input");
+  const text  = input.value.trim();
+  if (!text) return;
+  input.value = "";
+  sendMessage(text);
+}
+
+document.getElementById("text-input").addEventListener("keypress", e => {
+  if (e.key === "Enter") sendText();
+});
+
+// =====================
+// 音声入力
+// =====================
+function toggleMic() {
+  if (isLoading) return;
+  isRecording ? stopMic() : startMic();
+}
+
+function startMic() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    document.getElementById("status-text").textContent = "このブラウザは音声入力に対応してないみたい。文字で入力してね";
+    return;
+  }
+  recognition = new SR();
+  recognition.lang = "ja-JP";
+  recognition.continuous     = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    document.getElementById("mic-btn").className   = "recording";
+    document.getElementById("mic-btn").innerHTML   = "🔴 話してね…（もう一度押すと止まるよ）";
+    document.getElementById("status-text").textContent = "聞いてるよ…";
+  };
+
+  recognition.onresult = e => {
+    const t = Array.from(e.results).map(r => r[0].transcript).join("");
+    document.getElementById("text-input").value = t;
+  };
+
+  recognition.onend = () => {
+    isRecording = false;
+    document.getElementById("mic-btn").className = "";
+    document.getElementById("mic-btn").innerHTML = "🎤 ここを押してしゃべってね";
+    const text = document.getElementById("text-input").value.trim();
+    if (text) {
+      document.getElementById("text-input").value = "";
+      sendMessage(text);
+    } else {
+      document.getElementById("status-text").textContent = "聞き取れなかったみたい、もう一回話しかけてね";
+    }
+  };
+
+  recognition.onerror = () => {
+    isRecording = false;
+    document.getElementById("mic-btn").className = "";
+    document.getElementById("mic-btn").innerHTML = "🎤 ここを押してしゃべってね";
+    document.getElementById("status-text").textContent = "うまく聞き取れなかったよ、もう一回試してみてね";
+  };
+
+  recognition.start();
+}
+
+function stopMic() {
+  if (recognition) recognition.stop();
+}
+
+// =====================
+// 音声読み上げ
+// =====================
+function removeEmoji(text) {
+  return text.replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27FF}\u{2B00}-\u{2BFF}\u{FE00}-\u{FEFF}\u{1F300}-\u{1F9FF}\u{1FA00}-\u{1FAFF}]/gu, "");
+}
+
+function speak(text) {
+  window.speechSynthesis.cancel();
+  const cleanText = removeEmoji(text).trim();
+  if (!cleanText) return;
+  const utter   = new SpeechSynthesisUtterance(cleanText);
+  utter.lang    = "ja-JP";
+  utter.rate    = 0.82;
+  utter.pitch   = voiceType === "female" ? 1.1 : 0.85;
+  if (!selectedVoice) selectedVoice = findVoice(voiceType);
+  if (selectedVoice)  utter.voice   = selectedVoice;
+  window.speechSynthesis.speak(utter);
+}
+
+// =====================
+// UI
+// =====================
+function addMessage(role, text) {
+  const area = document.getElementById("chat-area");
+  const div  = document.createElement("div");
+  div.className = `msg ${role}`;
+  div.innerHTML = `
+    <div class="msg-label">${role === "ai" ? "🔔 ベル" : "よしこさん"}</div>
+    <div class="msg-bubble">${text}</div>
+  `;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function showTyping() {
+  const area = document.getElementById("chat-area");
+  const div  = document.createElement("div");
+  div.className = "msg ai";
+  div.id = "typing-indicator";
+  div.innerHTML = `
+    <div class="msg-label">🔔 ベル</div>
+    <div class="speaking-indicator"><span></span><span></span><span></span></div>
+  `;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+}
+
+function removeTyping() {
+  const el = document.getElementById("typing-indicator");
+  if (el) el.remove();
+}
+
+// ページを離れる前に記憶保存
+window.addEventListener("beforeunload", () => {
+  if (messages.length > 2) saveMemory();
+});
+</script>
+</body>
+</html>
