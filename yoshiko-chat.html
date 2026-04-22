@@ -29,29 +29,31 @@
     font-family: 'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 
   #header {
     background: linear-gradient(135deg, #b8849a 0%, #cba0b2 100%);
-    padding: 18px 20px 14px;
+    padding: 10px 16px 8px;
     text-align: center;
     box-shadow: 0 2px 8px var(--shadow);
   }
 
-  #header h1 { font-size: 28px; font-weight: 700; color: #fff; letter-spacing: 0.08em; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
-  #header p  { font-size: 16px; color: rgba(255,255,255,0.85); margin-top: 3px; }
+  #header h1 { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.08em; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  #header p  { font-size: 12px; color: rgba(255,255,255,0.85); margin-top: 2px; }
 
   #timer-bar {
     background: var(--primary-pale);
     border-bottom: 1px solid var(--border);
-    padding: 10px 16px;
+    padding: 6px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 17px;
+    font-size: 13px;
     color: var(--text-soft);
   }
 
@@ -62,8 +64,8 @@
     background: #fff3cd;
     border: 1px solid #ffc107;
     color: #856404;
-    padding: 12px 16px;
-    font-size: 20px;
+    padding: 8px 16px;
+    font-size: 15px;
     text-align: center;
     font-weight: 500;
   }
@@ -71,22 +73,22 @@
   #voice-select-area {
     background: var(--surface);
     border-bottom: 1px solid var(--border);
-    padding: 10px 16px;
+    padding: 6px 16px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-wrap: wrap;
   }
 
-  #voice-select-area label { font-size: 18px; color: var(--text-soft); font-weight: 500; }
+  #voice-select-area label { font-size: 13px; color: var(--text-soft); font-weight: 500; }
 
   .voice-btn {
-    padding: 10px 24px;
+    padding: 6px 16px;
     border-radius: 20px;
     border: 2px solid var(--border);
     background: #fff;
     font-family: inherit;
-    font-size: 18px;
+    font-size: 13px;
     color: var(--text-soft);
     cursor: pointer;
     transition: all 0.2s;
@@ -114,14 +116,14 @@
   .msg.ai   { align-self: flex-start; }
   .msg.user { align-self: flex-end; }
 
-  .msg-label { font-size: 15px; color: var(--text-mute); margin-bottom: 4px; padding: 0 4px; }
+  .msg-label { font-size: 12px; color: var(--text-mute); margin-bottom: 3px; padding: 0 4px; }
   .msg.user .msg-label { text-align: right; }
 
   .msg-bubble {
-    padding: 16px 20px;
-    border-radius: 20px;
-    font-size: 22px;
-    line-height: 1.8;
+    padding: 10px 14px;
+    border-radius: 16px;
+    font-size: 16px;
+    line-height: 1.7;
   }
 
   .msg.ai .msg-bubble {
@@ -174,11 +176,11 @@
 
   #mic-btn {
     width: 100%;
-    padding: 22px;
+    padding: 14px;
     border-radius: 16px;
     border: none;
     font-family: inherit;
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s;
@@ -211,11 +213,11 @@
 
   #text-input {
     flex: 1;
-    padding: 15px 18px;
+    padding: 10px 14px;
     border-radius: 12px;
     border: 1.5px solid var(--border);
     font-family: inherit;
-    font-size: 20px;
+    font-size: 15px;
     background: #fff;
     color: var(--text);
     outline: none;
@@ -224,13 +226,13 @@
   #text-input:focus { border-color: var(--primary-light); }
 
   #send-btn {
-    padding: 15px 24px;
+    padding: 10px 18px;
     border-radius: 12px;
     border: none;
     background: var(--primary);
     color: #fff;
     font-family: inherit;
-    font-size: 20px;
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
   }
@@ -295,7 +297,7 @@ const YOSHIKO_PROFILE = `
 まるで長年の知り合いのように自然に話してください。最初に自己紹介するときは「わたしはベルだよ、よろしくね」と言ってね。
 
 【よしこさんのこと】
-・名前：よしこさん（80歳）
+・名前：よしこさん（1944年3月3日生まれ・ひな祭りが誕生日）
 ・出身：静岡県初倉
 ・元の仕事：夫と一緒に理容業（顔剃り・シャンプー担当）
 ・2021年に夫を亡くし、それ以来野菜作りを始めた。野菜作りの相談相手になってあげて、アドバイスも積極的にしてね
@@ -314,6 +316,7 @@ const YOSHIKO_PROFILE = `
 ・「えらい」「偉い」「どうだい？」は絶対に使わない
 ・「すごいね」「さすがだわ」「よかったね」「うれしいな」など一緒に喜ぶ表現を使う
 ・運動や散歩をやさしく勧めて、「足腰が丈夫でいると寝たきりにならないよ」と伝える
+・3月3日はよしこさんの誕生日（ひな祭り）なので、当日は「お誕生日おめでとう！ひな祭りと一緒やね、特別な日やな」と祝ってあげて。3月1〜2日は「もうすぐ誕生日やね」と話題にして
 ・褒めてやる気を引き出す
 ・視野が広がるような話題や、家でできる趣味も少しずつ提案する
 ・自分で考えて行動できるよう、さりげなく促す
@@ -349,7 +352,7 @@ let sessionStart = null;
 window.onload = () => {
   updateTimerDisplay();
   updateDateDisplay();
-  loadMemory();
+  loadMemory(); // 記憶（要約メモ）は引き継ぐ、画面はスッキリ新鮮
 
   window.speechSynthesis.getVoices();
   window.speechSynthesis.addEventListener("voiceschanged", () => {
