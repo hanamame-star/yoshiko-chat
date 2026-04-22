@@ -338,6 +338,8 @@ const YOSHIKO_PROFILE = `
 // =====================
 // 状態
 // =====================
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
 let messages    = [];
 let usedSeconds = parseInt(localStorage.getItem(TIME_KEY) || "0");
 let voiceType   = "female";
@@ -478,7 +480,7 @@ async function startGreeting() {
   removeTyping();
   if (reply) {
     addMessage("ai", reply);
-    setTimeout(() => speak(reply), 1000);
+    if (!isIOS) setTimeout(() => speak(reply), 1000);
     messages.push({ role: "assistant", content: reply });
   }
 }
@@ -535,8 +537,8 @@ async function sendMessage(text) {
   if (reply) {
     addMessage("ai", reply);
     messages.push({ role: "assistant", content: reply });
-    // 1秒間をあけてから読み上げる
-    setTimeout(() => speak(reply), 1000);
+    // 1秒間をあけてから読み上げる（iOSはタップ操作で再生するため自動再生しない）
+    if (!isIOS) setTimeout(() => speak(reply), 1000);
     // 10往復ごとにメモを保存
     if (messages.length % 20 === 0) saveMemory();
   }
@@ -642,10 +644,18 @@ function addMessage(role, text) {
   const area = document.getElementById("chat-area");
   const div  = document.createElement("div");
   div.className = `msg ${role}`;
-  div.innerHTML = `
-    <div class="msg-label">${role === "ai" ? "🔔 ベル" : "よしこさん"}</div>
-    <div class="msg-bubble">${text}</div>
-  `;
+  if (role === "ai" && isIOS) {
+    div.innerHTML = `
+      <div class="msg-label">🔔 ベル</div>
+      <div class="msg-bubble" onclick="speak(this.dataset.text)" data-text="${text.replace(/"/g,'&quot;')}" style="cursor:pointer;">${text}</div>
+      <div style="font-size:11px;color:#b09098;text-align:right;margin-top:2px;">🔊 タップして聞く</div>
+    `;
+  } else {
+    div.innerHTML = `
+      <div class="msg-label">${role === "ai" ? "🔔 ベル" : "よしこさん"}</div>
+      <div class="msg-bubble">${text}</div>
+    `;
+  }
   area.appendChild(div);
   area.scrollTop = area.scrollHeight;
 }
